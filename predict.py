@@ -2,8 +2,6 @@
 # https://github.com/replicate/cog/blob/main/docs/python.md
 
 from cog import BasePredictor, BaseModel, File, Input, Path
-from base import init_model, make_background_magenta, load_image_generalised, inference, inference_w_gpt, inference_with_edge_guidance, init_canny_controlnet
-from postprocess import cut, cutv2, cut_magenta, remBgPil, splitHeightTo2, splitImageTo9, img2b4
 from PIL import Image
 from run import run_predict
 

@@ -47,6 +47,12 @@ async def x(request: Request,background_tasks: BackgroundTasks, data: Prediction
 
 
 
+@app.get('/healthz', status_code=200, response_model=dict)
+async def healthz():
+    """"
+    Health check endpoint required for Kubernetes LB periodic pings
+    """
+    return {'status': 'OK'}
 
 @app.get("/backlog/")
 def return_backlog():
@@ -56,4 +62,4 @@ def return_backlog():
 if __name__ == "__main__":
     import uvicorn
     print('Starting fast-api on 5001')
-    uvicorn.run("__main__:app", host="0.0.0.0", port=5000, workers=8)
+    uvicorn.run("__main__:app", host="0.0.0.0", port=8080, workers=4)

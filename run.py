@@ -1,40 +1,49 @@
 import os
 
 import urllib.request
+import subprocess
 
 from typing import Any, List
 import torch 
 
-from base import init_model, make_background_magenta, load_image_generalised, inference, inference_w_gpt, inference_with_edge_guidance, init_canny_controlnet
+from base import init_model, load_image_generalised, inference, inference_w_gpt, inference_with_edge_guidance, init_canny_controlnet
 from postprocess import cut, cutv2, cut_magenta, remBgPil, splitHeightTo2, splitImageTo9, img2b4
 from cog import BasePredictor, BaseModel, File, Input, Path
 
 
 print('cuda status is',torch.cuda.is_available())
 
+
+# base = "/AI/summerstay/diffusers"
+# base = "./diffusers_models"
+base = "/src/"
+
 #Magenta model for txt2img generation, does not use ControlNet as there is no input image
 # pipe_txt2img = init_model(local_model_path = "./diffusers_TopdownBalanced")
 
 try:  
-    mode = os.environ["MODEL"]
+    # mode = os.environ["MODEL"]
+    mode = "trees"
+    subprocess.run(["gsutil", "cp", "-r", "gs://models-infinit/" + mode, "."]) 
+
     if mode == "trees":
-        pipe_tree = init_model(local_model_path = "/AI/summerstay/diffusers/buildings")
+        pipe_tree = init_model(local_model_path = base + "trees")
     if mode == "furniture":
-        pipe_furniture = init_model(local_model_path = "/AI/summerstay/diffusers/furniture")
+        pipe_furniture = init_model(local_model_path =  base + "furniture")
     if mode == "buildings":
-        pipe_building = init_model(local_model_path = "/AI/summerstay/diffusers/trees")
+        pipe_building = init_model(local_model_path =  base + "buildings")
     if mode == "plants":
-        pipe_plants = init_model(local_model_path = "/AI/summerstay/diffusers/plants")
+        pipe_plants = init_model(local_model_path =  base + "plants")
     
         
 
 
 except KeyError: 
     print ("Please set the environment variable MODEL, running all models")
-    pipe_building = init_model(local_model_path = "/AI/summerstay/diffusers/buildings", device="cuda:0")
-    pipe_furniture = init_model(local_model_path = "/AI/summerstay/diffusers/furniture", device="cuda:1")
-    pipe_tree = init_model(local_model_path = "/AI/summerstay/diffusers/trees", device="cuda:2")
-    pipe_plants = init_model(local_model_path = "/AI/summerstay/diffusers/plants", device="cuda:3")
+    pipe_building = init_model(local_model_path =  base + "buildings", device="cuda:0")
+    pipe_furniture = init_model(local_model_path =  base + "furniture", device="cuda:0")
+    pipe_tree = init_model(local_model_path =  base + "trees", device="cuda:1")
+    pipe_plants = init_model(local_model_path =  base + "plants", device="cuda:1")
 
 
 def separate_prompts(inp_str: str):
@@ -84,6 +93,10 @@ def run_predict(
               else:
                 used_model = pipe_furniture
               
+
+              print('prompts', prompts)
+              print('negative_prompt', negative_prompt)
+
               print('Model selected about to inference')
               images = inference_w_gpt(used_model, init_img, \
                           prompts = prompts, \
